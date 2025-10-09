@@ -11,6 +11,7 @@ ENV/
 
 # SQLite db
 dev.db
+test.db
 
 # env files
 .env
