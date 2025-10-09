@@ -4,7 +4,7 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Flask 1.1.4](https://img.shields.io/badge/flask-1.1.4-green.svg)](https://flask.palletsprojects.com/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-
+a
 This project is a minimal Flask 1.1.x API for managing email blacklists using SQLAlchemy, Flask-RESTful, and Marshmallow. It includes a Dockerfile and docker-compose for running with PostgreSQL.
 
 ## Table of Contents
