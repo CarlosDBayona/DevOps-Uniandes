@@ -121,12 +121,6 @@ Current test coverage: **>90%**
 View detailed coverage report:
 ```powershell
 pytest --cov=app --cov-report=html
-# Open htmlcov/index.html in browser
-```
-
-**📚 For detailed testing documentation, see [TESTING.md](TESTING.md)**
-
-**⚡ Quick reference: [TEST_QUICK_REF.md](TEST_QUICK_REF.md)**
 
 ### Continuous Integration
 
@@ -186,37 +180,3 @@ python run.py
 ```
 
 The API will be available at `http://localhost:5000`
-
-### Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Write tests for your changes
-4. Ensure all tests pass (`pytest`)
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
-
-### Code Quality
-
-- **Tests:** All new features must include tests
-- **Coverage:** Maintain >90% test coverage
-- **Style:** Follow PEP 8 guidelines
-- **Documentation:** Update README and docstrings
-
-## License
-
-This project is licensed under the MIT License.
-
-## Authors
-
-- Universidad de los Andes - DevOps Course
-
-## Acknowledgments
-
-- Flask and its ecosystem
-- PostgreSQL
-- Docker
-- GitHub Actions
-
-
