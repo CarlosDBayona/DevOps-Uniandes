@@ -1,0 +1,345 @@
+{
+  "info": {
+    "_postman_id": "flask-blacklist-api",
+    "name": "Flask Blacklist API",
+    "description": "# Flask Blacklist API\n\nThis collection provides comprehensive testing for the Flask Blacklist API, which manages email blacklists.\n\n## Authentication\n\nAll endpoints require Bearer token authentication. The default token is `secret-token` and can be configured via the `STATIC_BEARER_TOKEN` environment variable.\n\n## Base URL\n\nDefault: `http://localhost:5000`\n\n## Endpoints\n\n### POST /blacklists\nAdd an email to the blacklist with optional metadata.\n\n### GET /blacklists/<email>\nCheck if an email is blacklisted and retrieve the reason.\n\n## Collection Variables\n\n- `bearer_token`: Authentication token (default: `secret-token`)\n- `base_url`: API base URL (default: `http://localhost:5000`)\n\n## Test Coverage\n\nThis collection includes automated tests for:\n- Successful operations\n- Authentication failures (missing/invalid tokens)\n- Validation errors (missing required fields)\n- Edge cases (non-existent emails)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Add Blacklist - Success",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"Response has success message\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.msg).to.eql('Email added to blacklist');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bearer_token}}",
+            "description": "Static bearer token for authentication"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"test@example.com\",\n  \"app_uuid\": \"app-123\",\n  \"blocked_reason\": \"spam\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/blacklists",
+          "host": ["{{base_url}}"],
+          "path": ["blacklists"]
+        },
+        "description": "Successfully adds an email to the blacklist with valid authentication.\n\n**Required Fields:**\n- `email` (string): Email address to blacklist\n\n**Optional Fields:**\n- `app_uuid` (string): Application identifier\n- `blocked_reason` (string): Reason for blocking\n\n**Expected Response:** 201 Created\n```json\n{\n  \"msg\": \"Email added to blacklist\"\n}\n```"
+      }
+    },
+    {
+      "name": "Add Blacklist - No Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 401\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "",
+              "pm.test(\"Response indicates missing or invalid token\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.msg).to.include('token');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"test@example.com\",\n  \"app_uuid\": \"app-123\",\n  \"blocked_reason\": \"spam\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/blacklists",
+          "host": ["{{base_url}}"],
+          "path": ["blacklists"]
+        },
+        "description": "Tests authentication failure when no Authorization header is provided.\n\n**Authentication:** None (intentionally omitted)\n\n**Expected Response:** 401 Unauthorized\n```json\n{\n  \"msg\": \"Missing or invalid token\"\n}\n```"
+      }
+    },
+    {
+      "name": "Add Blacklist - Invalid Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 401\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "",
+              "pm.test(\"Response indicates missing or invalid token\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.msg).to.include('token');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer invalid-token-123",
+            "description": "Invalid bearer token"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"test@example.com\",\n  \"app_uuid\": \"app-123\",\n  \"blocked_reason\": \"spam\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/blacklists",
+          "host": ["{{base_url}}"],
+          "path": ["blacklists"]
+        },
+        "description": "Tests authentication failure when an invalid bearer token is provided.\n\n**Authentication:** Bearer token with incorrect value\n\n**Expected Response:** 401 Unauthorized\n```json\n{\n  \"msg\": \"Missing or invalid token\"\n}\n```"
+      }
+    },
+    {
+      "name": "Add Blacklist - Missing Email",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "pm.test(\"Response indicates email is required\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.msg).to.include('email');",
+              "    pm.expect(jsonData.msg).to.include('required');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bearer_token}}",
+            "description": "Valid bearer token"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"app_uuid\": \"app-123\",\n  \"blocked_reason\": \"spam\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/blacklists",
+          "host": ["{{base_url}}"],
+          "path": ["blacklists"]
+        },
+        "description": "Tests validation error when the required `email` field is missing from the request body.\n\n**Authentication:** Valid bearer token\n\n**Request Body:** Missing required `email` field\n\n**Expected Response:** 400 Bad Request\n```json\n{\n  \"msg\": \"email is required\"\n}\n```"
+      }
+    },
+    {
+      "name": "Check Blacklist - Found",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response indicates email is blocked\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('blocked');",
+              "    pm.expect(jsonData).to.have.property('reason');",
+              "    pm.expect(jsonData.blocked).to.be.a('boolean');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bearer_token}}",
+            "description": "Valid bearer token"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/blacklists/test@example.com",
+          "host": ["{{base_url}}"],
+          "path": ["blacklists", "test@example.com"]
+        },
+        "description": "Checks if an email is in the blacklist. This request assumes the email has been previously added.\n\n**Authentication:** Valid bearer token\n\n**URL Parameter:** Email address to check\n\n**Expected Response:** 200 OK\n```json\n{\n  \"blocked\": true,\n  \"reason\": \"spam\"\n}\n```\n\n**Note:** Run \"Add Blacklist - Success\" first to ensure this email exists in the database."
+      }
+    },
+    {
+      "name": "Check Blacklist - Not Found",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response indicates email is not blocked\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.blocked).to.eql(false);",
+              "    pm.expect(jsonData.reason).to.eql(null);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bearer_token}}",
+            "description": "Valid bearer token"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/blacklists/notblocked@example.com",
+          "host": ["{{base_url}}"],
+          "path": ["blacklists", "notblocked@example.com"]
+        },
+        "description": "Checks for an email that does not exist in the blacklist.\n\n**Authentication:** Valid bearer token\n\n**URL Parameter:** Email address not in the blacklist\n\n**Expected Response:** 200 OK\n```json\n{\n  \"blocked\": false,\n  \"reason\": null\n}\n```\n\n**Note:** The API returns 200 OK even when the email is not found, with `blocked: false`."
+      }
+    },
+    {
+      "name": "Check Blacklist - No Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 401\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "",
+              "pm.test(\"Response indicates missing or invalid token\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.msg).to.include('token');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/blacklists/test@example.com",
+          "host": ["{{base_url}}"],
+          "path": ["blacklists", "test@example.com"]
+        },
+        "description": "Tests authentication failure when checking blacklist status without providing an Authorization header.\n\n**Authentication:** None (intentionally omitted)\n\n**Expected Response:** 401 Unauthorized\n```json\n{\n  \"msg\": \"Missing or invalid token\"\n}\n```"
+      }
+    },
+    {
+      "name": "Check Blacklist - Invalid Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 401\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "",
+              "pm.test(\"Response indicates missing or invalid token\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.msg).to.include('token');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer wrong-token",
+            "description": "Invalid bearer token"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/blacklists/test@example.com",
+          "host": ["{{base_url}}"],
+          "path": ["blacklists", "test@example.com"]
+        },
+        "description": "Tests authentication failure when checking blacklist status with an invalid bearer token.\n\n**Authentication:** Bearer token with incorrect value\n\n**Expected Response:** 401 Unauthorized\n```json\n{\n  \"msg\": \"Missing or invalid token\"\n}\n```"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "bearer_token",
+      "value": "secret-token",
+      "type": "string",
+      "description": "Static bearer token for API authentication. Default value matches the server configuration."
+    },
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000",
+      "type": "string",
+      "description": "Base URL for the Flask Blacklist API. Change this for different environments (e.g., staging, production)."
+    }
+  ]
+}
