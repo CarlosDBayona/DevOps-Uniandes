@@ -121,6 +121,8 @@ Current test coverage: **>90%**
 View detailed coverage report:
 ```powershell
 pytest --cov=app --cov-report=html
+# Open htmlcov/index.html in browser
+```
 
 ### Continuous Integration
 
