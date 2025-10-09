@@ -21,8 +21,14 @@ class TestAppConfiguration:
     
     def test_static_bearer_token_default(self):
         """Test default static bearer token."""
+        import os
+        # Clean up any existing env var
+        os.environ.pop('STATIC_BEARER_TOKEN', None)
+        os.environ['DATABASE_URL'] = 'sqlite:///:memory:'
         app = create_app()
         assert app.config['STATIC_BEARER_TOKEN'] == 'secret-token'
+        # Clean up
+        os.environ.pop('DATABASE_URL', None)
     
     def test_static_bearer_token_custom(self):
         """Test custom static bearer token via config."""
@@ -36,12 +42,13 @@ class TestAppConfiguration:
     def test_database_uri_from_env(self):
         """Test database URI can be set from environment."""
         import os
-        test_uri = 'postgresql://test:test@localhost/test'
+        # Use SQLite for testing (psycopg2 not installed locally)
+        test_uri = 'sqlite:///test.db'
         os.environ['DATABASE_URL'] = test_uri
         app = create_app()
         assert app.config['SQLALCHEMY_DATABASE_URI'] == test_uri
         # Clean up
-        del os.environ['DATABASE_URL']
+        os.environ.pop('DATABASE_URL', None)
     
     def test_sqlalchemy_track_modifications_disabled(self, app):
         """Test that SQLALCHEMY_TRACK_MODIFICATIONS is disabled."""

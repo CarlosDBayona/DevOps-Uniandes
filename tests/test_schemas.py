@@ -38,6 +38,7 @@ class TestBlacklistSchema:
     
     def test_deserialize_blacklist_data(self, app):
         """Test deserializing blacklist data."""
+        from app import db
         with app.app_context():
             schema = BlacklistSchema()
             data = {
@@ -45,7 +46,6 @@ class TestBlacklistSchema:
                 'app_uuid': 'app-deser',
                 'blocked_reason': 'deserialize test'
             }
-            # Note: We don't use load() with load_instance as it requires session
-            # This is just to verify the schema structure
-            errors = schema.validate(data)
+            # Validate with session (required by marshmallow-sqlalchemy)
+            errors = schema.validate(data, session=db.session)
             assert errors == {}

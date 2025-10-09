@@ -9,18 +9,22 @@ from app.models import Blacklist
 @pytest.fixture
 def app():
     """Create and configure a test application instance."""
+    import os
+    # Set environment variable before creating app
+    os.environ['DATABASE_URL'] = 'sqlite:///:memory:'
+    os.environ['STATIC_BEARER_TOKEN'] = 'test-token'
+    
     app = create_app()
-    app.config.update({
-        'TESTING': True,
-        'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
-        'STATIC_BEARER_TOKEN': 'test-token'
-    })
+    app.config['TESTING'] = True
     
     with app.app_context():
-        db.create_all()
+        # Tables are already created by create_app()
         yield app
         db.session.remove()
         db.drop_all()
+    
+    # Clean up environment variables
+    os.environ.pop('DATABASE_URL', None)
 
 
 @pytest.fixture
