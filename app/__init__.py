@@ -24,6 +24,15 @@ def create_app(config_object=None):
     ma.init_app(app)
     api = Api(app)
 
+    # Health check endpoint for EBS
+    @app.route('/')
+    def health_check():
+        return {
+            'status': 'healthy',
+            'service': 'Flask Blacklist API',
+            'version': '1.0.0'
+        }, 200
+
     # import resources here to register endpoints
     from .resources.blacklist import BlacklistResource, BlacklistLookupResource
 
