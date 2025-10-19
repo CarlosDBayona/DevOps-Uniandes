@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "flask-blacklist-api",
     "name": "Flask Blacklist API",
-    "description": "# Flask Blacklist API\n\nThis collection provides comprehensive testing for the Flask Blacklist API, which manages email blacklists.\n\n## Authentication\n\nAll endpoints require Bearer token authentication. The default token is `secret-token` and can be configured via the `STATIC_BEARER_TOKEN` environment variable.\n\n## Base URL\n\nDefault: `http://localhost:5000`\n\n## Endpoints\n\n### POST /blacklists\nAdd an email to the blacklist with optional metadata.\n\n### GET /blacklists/<email>\nCheck if an email is blacklisted and retrieve the reason.\n\n## Collection Variables\n\n- `bearer_token`: Authentication token (default: `secret-token`)\n- `base_url`: API base URL (default: `http://localhost:5000`)\n\n## Test Coverage\n\nThis collection includes automated tests for:\n- Successful operations\n- Authentication failures (missing/invalid tokens)\n- Validation errors (missing required fields)\n- Edge cases (non-existent emails)",
+    "description": "# Flask Blacklist API\n\nThis collection provides comprehensive testing for the Flask Blacklist API, which manages email blacklists.\n\n## Authentication\n\nAll endpoints require Bearer token authentication. The default token is `secret-token` and can be configured via the `STATIC_BEARER_TOKEN` environment variable.\n\n## Base URL\n\nDefault: `http://localhost:8080`\n\n## Endpoints\n\n### POST /blacklists\nAdd an email to the blacklist with optional metadata.\n\n### GET /blacklists/<email>\nCheck if an email is blacklisted and retrieve the reason.\n\n## Collection Variables\n\n- `bearer_token`: Authentication token (default: `secret-token`)\n- `base_url`: API base URL (default: `http://localhost:80`)\n\n## Test Coverage\n\nThis collection includes automated tests for:\n- Successful operations\n- Authentication failures (missing/invalid tokens)\n- Validation errors (missing required fields)\n- Edge cases (non-existent emails)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -337,7 +337,7 @@
     },
     {
       "key": "base_url",
-      "value": "http://localhost:5000",
+      "value": "http://localhost:80",
       "type": "string",
       "description": "Base URL for the Flask Blacklist API. Change this for different environments (e.g., staging, production)."
     }

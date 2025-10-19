@@ -29,7 +29,19 @@ class BlacklistResource(Resource):
             return {'msg': 'email is required'}, 400
         app_uuid = data.get('app_uuid')
         blocked_reason = data.get('blocked_reason')
-        bl = Blacklist(email=email, app_uuid=app_uuid, blocked_reason=blocked_reason)
+        
+        # Capturar la IP del cliente
+        ip_address = request.headers.get('X-Forwarded-For', request.remote_addr)
+        if ip_address and ',' in ip_address:
+            # Si hay múltiples IPs (proxy chain), tomar la primera
+            ip_address = ip_address.split(',')[0].strip()
+        
+        bl = Blacklist(
+            email=email, 
+            app_uuid=app_uuid, 
+            blocked_reason=blocked_reason,
+            ip_address=ip_address
+        )
         db.session.add(bl)
         db.session.commit()
         return {'msg': 'Email added to blacklist'}, 201
