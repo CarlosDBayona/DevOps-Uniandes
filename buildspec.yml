@@ -14,14 +14,19 @@ phases:
       - echo "Running tests..."
       - python -m pytest tests/ --cov=app --cov-report=term --cov-report=html -v
       - echo "Tests completed"
-      - echo "Creating deployment package..."
-      - zip -r application.zip . -x "*.git*" "*__pycache__*" "*.pytest_cache*" "htmlcov/*" "*.db" ".coverage" "*venv/*" "*.venv/*"
-      - echo "Artifact created"
 
 artifacts:
   files:
-    - application.zip
-  name: application-$(date +%Y%m%d-%H%M%S).zip
+    - '**/*'
+  excludes:
+    - '**/.git/**/*'
+    - '**/__pycache__/**/*'
+    - '**/.pytest_cache/**/*'
+    - 'htmlcov/**/*'
+    - '**/*.db'
+    - '.coverage'
+    - '**/venv/**/*'
+    - '**/.venv/**/*'
 
 reports:
   pytest_reports:
