@@ -27,6 +27,7 @@ artifacts:
     - '.coverage'
     - '**/venv/**/*'
     - '**/.venv/**/*'
+  name: Proyecto-devops-$CODEBUILD_BUILD_NUMBER
 
 reports:
   pytest_reports:
