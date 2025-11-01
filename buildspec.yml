@@ -4,30 +4,40 @@ phases:
   install:
     runtime-versions:
       python: 3.9
+      docker: 20
     commands:
       - echo "Installing dependencies..."
       - pip install --upgrade pip
       - pip install -r requirements.txt
   
-  build:
+  pre_build:
     commands:
       - echo "Running tests..."
-      - python -m pytest tests/ --cov=app --cov-report=term --cov-report=html -v
-      - echo "Tests completed"
-
-artifacts:
-  files:
-    - '**/*'
-  excludes:
-    - '**/.git/**/*'
-    - '**/__pycache__/**/*'
-    - '**/.pytest_cache/**/*'
-    - 'htmlcov/**/*'
-    - '**/*.db'
-    - '.coverage'
-    - '**/venv/**/*'
-    - '**/.venv/**/*'
-  name: Proyecto-devops-$CODEBUILD_BUILD_NUMBER
+      - python -m pytest tests/ --cov=app --cov-report=term --cov-report=html --cov-fail-under=80 -v
+      - echo "Tests completed with at least 80% coverage"
+      - echo "Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/uniandes/devops
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=${COMMIT_HASH:=latest}
+  
+  build:
+    commands:
+      - echo "Build started on `date`"
+      - echo "Building Docker image..."
+      - docker build -t $REPOSITORY_URI:latest .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$CODEBUILD_BUILD_NUMBER
+  
+  post_build:
+    commands:
+      - echo "Build completed on `date`"
+      - echo "Pushing Docker image to ECR..."
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - docker push $REPOSITORY_URI:$CODEBUILD_BUILD_NUMBER
+      - echo "Docker image pushed successfully"
+      - echo "Image URI:" $REPOSITORY_URI:$IMAGE_TAG
 
 reports:
   pytest_reports:
