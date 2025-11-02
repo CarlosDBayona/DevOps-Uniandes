@@ -23,7 +23,7 @@ phases:
       - echo "Pulling latest Docker image from ECR..."
       - docker pull $REPOSITORY_URI:latest
       - echo "Starting application container..."
-      - docker run -d --name app-test --link postgres-test:postgres -p 80:8080 -e DATABASE_URL=postgresql://postgres:testpass@postgres:5432/testdb -e STATIC_BEARER_TOKEN=secret-token $REPOSITORY_URI:latest
+      - docker run -d --name app-test --link postgres-test:postgres -p 80:8080 -e DATABASE_URL=postgresql://postgres:testpass@postgres:5432/testdb -e STATIC_BEARER_TOKEN=secret-token $REPOSITORY_URI:latest gunicorn -b 0.0.0.0:8080 --workers 1 --threads 2 application:application
       - echo "Waiting for application to be ready..."
       - sleep 15
       - echo "Checking application health..."
