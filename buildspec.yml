@@ -4,6 +4,7 @@ phases:
   install:
     runtime-versions:
       python: 3.9
+      docker: 20
     commands:
       - echo "Installing dependencies..."
       - pip install --upgrade pip
@@ -11,28 +12,12 @@ phases:
 
   pre_build:
     commands:
-      # --- Diagnostics ---
-      - echo "AWS CLI:" && aws --version
-      - echo "Docker:" && docker --version || true
-      - aws sts get-caller-identity
-      - echo "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-<unset>}"
-      - docker info >/dev/null 2>&1 && echo "Docker daemon OK" || { echo "Docker NOT available"; exit 1; }
-
-      # --- Variables + ECR login ---
-      - : "${AWS_DEFAULT_REGION:?Set AWS_DEFAULT_REGION in project env (e.g., us-east-1)}"
-      - AWS_ACCOUNT_ID="${AWS_ACCOUNT_ID:-$(aws sts get-caller-identity --query Account --output text)}"
-      - REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
-      - echo "Logging into ${REGISTRY} ..."
-      - TOKEN="$(aws ecr get-login-password --region "${AWS_DEFAULT_REGION}")" || { echo "Failed to get ECR token (check ecr:GetAuthorizationToken + region)"; exit 1; }
-      - echo "${TOKEN}" | docker login --username AWS --password-stdin "${REGISTRY}" || { echo "Docker login failed (check VPC/NAT/ECR endpoints and repo region)"; exit 1; }
-
-      # Repo URI + tags
-      - REPOSITORY_URI="${REGISTRY}/uniandes/devops"
-      - COMMIT_HASH="$(echo "${CODEBUILD_RESOLVED_SOURCE_VERSION:-}" | cut -c1-7 || true)"
-      - IMAGE_TAG="${COMMIT_HASH:-latest}"
       - echo "Running tests..."
       - python -m pytest tests/ --cov=app --cov-report=term --cov-report=html --cov-fail-under=80 -v
       - echo "Tests completed with at least 80% coverage"
+      - echo "Checking environment variables..."
+      - echo "AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION"
+      - echo "AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID"
       - echo "Logging in to Amazon ECR..."
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
       - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/uniandes/devops
