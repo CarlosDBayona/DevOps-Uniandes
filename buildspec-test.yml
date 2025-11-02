@@ -16,15 +16,15 @@ phases:
       - echo "Logging in to Amazon ECR..."
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
       - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/uniandes/devops
-      - IMAGE_TAG=${CODEBUILD_BUILD_NUMBER:-latest}
-      - echo "Pulling Docker image from ECR..."
-      - docker pull $REPOSITORY_URI:$IMAGE_TAG
+      - echo "Pulling latest Docker image from ECR..."
+      - docker pull $REPOSITORY_URI:latest
       - echo "Starting application container..."
-      - docker run -d --name app-test -p 80:8080 -e DATABASE_URL=$DATABASE_URL -e STATIC_BEARER_TOKEN=secret-token $REPOSITORY_URI:$IMAGE_TAG
+      - docker run -d --name app-test -p 80:8080 -e DATABASE_URL=$DATABASE_URL -e STATIC_BEARER_TOKEN=secret-token $REPOSITORY_URI:latest
       - echo "Waiting for application to be ready..."
       - sleep 15
       - echo "Checking application health..."
       - docker ps
+      - docker logs app-test
   
   build:
     commands:
