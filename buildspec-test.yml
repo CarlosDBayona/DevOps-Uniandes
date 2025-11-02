@@ -2,6 +2,8 @@ version: 0.2
 
 phases:
   install:
+    runtime-versions:
+      docker: 20
     commands:
       - echo "Installing Newman for Postman integration tests..."
       - npm install -g newman
@@ -13,13 +15,17 @@ phases:
       - AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
       - echo "AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID"
       - echo "AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION"
+      - echo "Starting local PostgreSQL database for testing..."
+      - docker run -d --name postgres-test -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=testpass -e POSTGRES_DB=testdb -p 5432:5432 postgres:13
+      - echo "Waiting for database to be ready..."
+      - sleep 10
       - echo "Logging in to Amazon ECR..."
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
       - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/uniandes/devops
       - echo "Pulling latest Docker image from ECR..."
       - docker pull $REPOSITORY_URI:latest
       - echo "Starting application container..."
-      - docker run -d --name app-test -p 80:8080 -e DATABASE_URL=$DATABASE_URL -e STATIC_BEARER_TOKEN=secret-token $REPOSITORY_URI:latest
+      - docker run -d --name app-test --link postgres-test:postgres -p 80:8080 -e DATABASE_URL=postgresql://postgres:testpass@postgres:5432/testdb -e STATIC_BEARER_TOKEN=secret-token $REPOSITORY_URI:latest
       - echo "Waiting for application to be ready..."
       - sleep 15
       - echo "Checking application health..."
@@ -36,9 +42,11 @@ phases:
     commands:
       - echo "Collecting application logs..."
       - docker logs app-test || true
-      - echo "Stopping and removing application container..."
+      - echo "Stopping and removing containers..."
       - docker stop app-test || true
       - docker rm app-test || true
+      - docker stop postgres-test || true
+      - docker rm postgres-test || true
       - echo "Integration test stage completed on `date`"
 
 reports:
