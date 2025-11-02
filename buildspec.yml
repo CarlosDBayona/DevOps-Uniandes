@@ -8,9 +8,28 @@ phases:
       - echo "Installing dependencies..."
       - pip install --upgrade pip
       - pip install -r requirements.txt
-  
+
   pre_build:
     commands:
+      # --- Diagnostics ---
+      - echo "AWS CLI:" && aws --version
+      - echo "Docker:" && docker --version || true
+      - aws sts get-caller-identity
+      - echo "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-<unset>}"
+      - docker info >/dev/null 2>&1 && echo "Docker daemon OK" || { echo "Docker NOT available"; exit 1; }
+
+      # --- Variables + ECR login ---
+      - : "${AWS_DEFAULT_REGION:?Set AWS_DEFAULT_REGION in project env (e.g., us-east-1)}"
+      - AWS_ACCOUNT_ID="${AWS_ACCOUNT_ID:-$(aws sts get-caller-identity --query Account --output text)}"
+      - REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+      - echo "Logging into ${REGISTRY} ..."
+      - TOKEN="$(aws ecr get-login-password --region "${AWS_DEFAULT_REGION}")" || { echo "Failed to get ECR token (check ecr:GetAuthorizationToken + region)"; exit 1; }
+      - echo "${TOKEN}" | docker login --username AWS --password-stdin "${REGISTRY}" || { echo "Docker login failed (check VPC/NAT/ECR endpoints and repo region)"; exit 1; }
+
+      # Repo URI + tags
+      - REPOSITORY_URI="${REGISTRY}/uniandes/devops"
+      - COMMIT_HASH="$(echo "${CODEBUILD_RESOLVED_SOURCE_VERSION:-}" | cut -c1-7 || true)"
+      - IMAGE_TAG="${COMMIT_HASH:-latest}"
       - echo "Running tests..."
       - python -m pytest tests/ --cov=app --cov-report=term --cov-report=html --cov-fail-under=80 -v
       - echo "Tests completed with at least 80% coverage"
@@ -19,7 +38,7 @@ phases:
       - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/uniandes/devops
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
-  
+
   build:
     commands:
       - echo "Build started on `date`"
@@ -27,7 +46,7 @@ phases:
       - docker build -t $REPOSITORY_URI:latest .
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$CODEBUILD_BUILD_NUMBER
-  
+
   post_build:
     commands:
       - echo "Build completed on `date`"
@@ -41,10 +60,10 @@ phases:
 reports:
   pytest_reports:
     files:
-      - 'htmlcov/**/*'
+      - "htmlcov/**/*"
     file-format: HTML
-    base-directory: 'htmlcov'
+    base-directory: "htmlcov"
 
 cache:
   paths:
-    - '/root/.cache/pip/**/*'
+    - "/root/.cache/pip/**/*"
