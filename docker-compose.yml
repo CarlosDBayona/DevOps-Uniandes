@@ -20,7 +20,7 @@ services:
     depends_on:
       - db
     environment:
-      - DATABASE_URL=postgresql://postgres:Zz6H4AYVV0npmG05In6v@database-1.ci5wuem2chdf.us-east-1.rds.amazonaws.com:5432/postgres
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       - STATIC_BEARER_TOKEN=${STATIC_BEARER_TOKEN}
 
 volumes:
