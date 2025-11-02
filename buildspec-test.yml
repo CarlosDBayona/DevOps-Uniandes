@@ -1,0 +1,55 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      docker: 20
+    commands:
+      - echo "Installing Newman for Postman integration tests..."
+      - npm install -g newman
+      - npm install -g newman-reporter-htmlextra
+  
+  pre_build:
+    commands:
+      - echo "Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/uniandes/devops
+      - IMAGE_TAG=${CODEBUILD_BUILD_NUMBER:-latest}
+      - echo "Pulling Docker image from ECR..."
+      - docker pull $REPOSITORY_URI:$IMAGE_TAG
+      - echo "Starting application container..."
+      - docker run -d --name app-test -p 80:8080 -e DATABASE_URL=$DATABASE_URL -e STATIC_BEARER_TOKEN=secret-token $REPOSITORY_URI:$IMAGE_TAG
+      - echo "Waiting for application to be ready..."
+      - sleep 15
+      - echo "Checking application health..."
+      - docker ps
+  
+  build:
+    commands:
+      - echo "Running integration tests with Postman/Newman..."
+      - newman run postman_collection.json --reporters cli,htmlextra --reporter-htmlextra-export newman-report.html --bail
+      - echo "Integration tests completed successfully"
+  
+  post_build:
+    commands:
+      - echo "Collecting application logs..."
+      - docker logs app-test || true
+      - echo "Stopping and removing application container..."
+      - docker stop app-test || true
+      - docker rm app-test || true
+      - echo "Integration test stage completed on `date`"
+
+reports:
+  newman_reports:
+    files:
+      - 'newman-report.html'
+    file-format: HTML
+
+artifacts:
+  files:
+    - 'newman-report.html'
+  name: integration-test-reports
+
+cache:
+  paths:
+    - '/root/.npm/**/*'
