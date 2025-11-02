@@ -9,6 +9,8 @@ phases:
   
   pre_build:
     commands:
+      - echo "Logging in to Docker Hub to avoid rate limits..."
+      - echo $DOCKERHUB_PASSWORD | docker login --username $DOCKERHUB_USERNAME --password-stdin || echo "Docker Hub login failed, continuing..."
       - echo "Getting AWS Account ID..."
       - AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
       - echo "AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID"
