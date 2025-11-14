@@ -41,6 +41,18 @@ phases:
       - docker push $REPOSITORY_URI:$CODEBUILD_BUILD_NUMBER
       - echo "Docker image pushed successfully"
       - echo "Image URI:" $REPOSITORY_URI:$IMAGE_TAG
+      - echo "Writing image definitions file for ECS..."
+      - printf '[{"name":"uniandes-devops-container","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - echo "Preparing task definition for CodeDeploy..."
+      - sed -i "s|<IMAGE1_NAME>|$REPOSITORY_URI:$IMAGE_TAG|g" taskdef.json
+      - cat taskdef.json
+      - cat imagedefinitions.json
+
+artifacts:
+  files:
+    - imagedefinitions.json
+    - appspec.yaml
+    - taskdef.json
 
 reports:
   pytest_reports:
