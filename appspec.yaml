@@ -3,7 +3,7 @@ Resources:
   - TargetService:
       Type: AWS::ECS::Service
       Properties:
-        TaskDefinition: "uniandes-devops-task"
+        TaskDefinition: "arn:aws:ecs:us-east-1:975201825846:task-definition/uniandes-devops-task:2"
         LoadBalancerInfo:
           ContainerName: "uniandes-devops-container"
           ContainerPort: 8080
