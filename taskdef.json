@@ -1,0 +1,40 @@
+{
+  "family": "uniandes-devops-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::975201825846:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::975201825846:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "uniandes-devops-container",
+      "image": "<IMAGE1_NAME>",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/uniandes-devops",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "environment": [
+        {
+          "name": "FLASK_ENV",
+          "value": "production"
+        },
+        {
+          "name": "STATIC_BEARER_TOKEN",
+          "value": "secret-token"
+        }
+      ]
+    }
+  ]
+}
